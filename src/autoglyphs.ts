@@ -1,74 +1,64 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts"
 import {
-  Autoglyphs,
   Generated,
   Transfer,
   Approval,
   ApprovalForAll
 } from "../generated/Autoglyphs/Autoglyphs"
-import { ExampleEntity } from "../generated/schema"
+import { Token, Owner } from "../generated/schema"
 
-export function handleGenerated(event: Generated): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
+let ADDRESS_ZERO = Address.zero().toHex()
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (!entity) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
-
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
+function getOrCreateOwner(ownerAddress: Bytes): void{
+  let ownerId = ownerAddress.toHex()
+  let owner = Owner.load(ownerId)
+  if (!owner) {
+    owner = new Owner(ownerId)
+    owner.address = ownerAddress
   }
-
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
-
-  // Entity fields can be set based on event parameters
-  entity.index = event.params.index
-  entity.a = event.params.a
-
-  // Entities can be written to the store with `.save()`
-  entity.save()
-
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.supportsInterface(...)
-  // - contract.TOKEN_LIMIT(...)
-  // - contract.name(...)
-  // - contract.getApproved(...)
-  // - contract.ARTIST_PRINTS(...)
-  // - contract.totalSupply(...)
-  // - contract.tokenOfOwnerByIndex(...)
-  // - contract.BENEFICIARY(...)
-  // - contract.symbolScheme(...)
-  // - contract.draw(...)
-  // - contract.tokenByIndex(...)
-  // - contract.creator(...)
-  // - contract.ownerOf(...)
-  // - contract.balanceOf(...)
-  // - contract.PRICE(...)
-  // - contract.symbol(...)
-  // - contract.tokenURI(...)
-  // - contract.isApprovedForAll(...)
+  owner.save()
 }
 
-export function handleTransfer(event: Transfer): void {}
+function handleMint(to: Bytes, tokenId: string, timestamp: BigInt): void {
+  getOrCreateOwner(to)
+  let token = new Token(tokenId)
+  token.mintedTimestamp = timestamp
+  token.lastTransferTimestamp = timestamp
+  token.owner = to.toHex()
+  token.save()
+}
 
+function handleBurn(tokenId: string, timestamp: BigInt): void{
+  handleRegularTransfer(Address.zero(), tokenId, timestamp)
+}
+
+function handleRegularTransfer(to: Bytes, tokenId: string, timestamp: BigInt): void {
+  getOrCreateOwner(to)
+  let token = Token.load(tokenId)
+
+  if(!token) {
+    return
+  }
+  token.lastTransferTimestamp = timestamp
+  token.owner = to.toHex()
+  token.save()
+}
+
+export function handleTransfer(event: Transfer): void {
+  let from = event.params._from
+	let to = event.params._to
+	let tokenId = event.params._tokenId.toHex()
+	let timestamp = event.block.timestamp
+
+	if (from.toHex() == ADDRESS_ZERO) {
+		handleMint(to, tokenId, timestamp)
+	} else if (to.toHex() == ADDRESS_ZERO) {
+		handleBurn(tokenId, timestamp)
+	} else {
+		handleRegularTransfer(to, tokenId, timestamp)
+	}
+}
+
+export function handleGenerated(event: Generated): void {}
 export function handleApproval(event: Approval): void {}
-
 export function handleApprovalForAll(event: ApprovalForAll): void {}

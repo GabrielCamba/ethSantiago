@@ -1,6 +1,12 @@
-type ExampleEntity @entity {
+type Token @entity {
   id: ID!
-  count: BigInt!
-  index: BigInt! # uint256
-  a: Bytes! # address
+  owner: Owner!
+  mintedTimestamp: BigInt!
+  lastTransferTimestamp: BigInt!
+}
+
+type Owner @entity {
+  id: ID!
+  address: Bytes!
+  tokens: [Token!]! @derivedFrom(field: "owner")
 }

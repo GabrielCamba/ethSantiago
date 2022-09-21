@@ -1,4 +1,4 @@
-specVersion: 0.0.1
+specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
@@ -8,15 +8,14 @@ dataSources:
     source:
       address: "0xd4e4078ca3495DE5B1d4dB434BEbc5a986197782"
       abi: Autoglyphs
+      startBlock: 7510386
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - Generated
-        - Transfer
-        - Approval
-        - ApprovalForAll
+        - Token
+        - Owner
       abis:
         - name: Autoglyphs
           file: ./abis/Autoglyphs.json

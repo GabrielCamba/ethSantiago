@@ -1,6 +1,6 @@
 {
   "name": "autoglyphs",
-  "license": "UNLICENSED",
+  "license": "GPL v3",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
