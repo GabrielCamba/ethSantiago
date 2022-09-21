@@ -25,7 +25,7 @@ Este repositorio contiene el código de una simplificación del subgrafo de auto
 3.- Ejecutamos `yarn codegen` para generar lo necesario para comenzar
 
 4.- Ejecutamos `yarn build` para construir el proyecto
-`
+
 **Si todo fue bien en este punto tenemos todo lo necesario para poder trabajar con el proyecto**
 
 ## To deploy:
