@@ -1,0 +1,32 @@
+specVersion: 0.0.1
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Autoglyphs
+    network: mainnet
+    source:
+      address: "0xd4e4078ca3495DE5B1d4dB434BEbc5a986197782"
+      abi: Autoglyphs
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Generated
+        - Transfer
+        - Approval
+        - ApprovalForAll
+      abis:
+        - name: Autoglyphs
+          file: ./abis/Autoglyphs.json
+      eventHandlers:
+        - event: Generated(indexed uint256,indexed address,string)
+          handler: handleGenerated
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+        - event: Approval(indexed address,indexed address,indexed uint256)
+          handler: handleApproval
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
+      file: ./src/autoglyphs.ts
